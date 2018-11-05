@@ -1,0 +1,44 @@
+DB工具说明文档
+
+DBQuery是DB操作的主要工具
+DBQuery说明:（分库分表===============》暂不提供支持,暂时关闭了这个功能）
+    DBQuery只能在标记有ServicePlugin的类下使用
+    DBQuery每个函数只能操作一个数据库,操作不同数据库的函数不能互相调用,操作相同数据库的函数可以互相调用,当发生异常可以回滚两个函数所有操作（从事务起点回滚）【分库分表:无此限制】
+    DB注解用来指定函数使用的数据库别名,该别名存在于jdbc.properties文件中（db={}）
+    函数说明：
+        插入函数：两个重载,将返回插入的自增长列(如果没有自增长列,建议使用executeUpdate函数代替,返回变更行数),该函数也可使用execute替代
+            public <T> T insert(String sql, ResultSetHandler<T> rsh, Object... params) 公用插入函数
+            public <T extends Number> T insert(String sql, Object... params) 返回自增长列
+        DML操作:
+            public int executeUpdate(String sql, Object... params)  返回变更行数
+        复杂语句操作:两个重载
+            public int execute(String sql, Object... params)    复杂语句操作 只会拿到一个updateCount
+            public <T> List<T> execute(String sql, ResultSetHandler<T> rsh, Object... params)   返回结果集，不建议使用（暂时关闭了这个功能）
+        DQL操作：
+            public <T> T query(String sql, ResultSetHandler<T> rsh, Object... params) 万能查询语句
+         批处理：提供一个简单的批处理工具
+            public int[] batch(String sql, Object[][] params)
+
+jdbc.properties:配置说明
+        db={treasure,User}      数据库别名
+        defaultDB=treasure      默认使用数据库
+        printSQL=true               是否打印SQL
+
+        #treasure       别名+#+变量
+        treasure#username=fuchenglei    数据库用户名
+        treasure#password=Fucl@1qaz     数据库密码
+        treasure#url=jdbc:mysql://****************/treasure?Unicode=true&characterEncoding=utf8&useSSL=false     数据库连接地址
+        treasure#driverClassName =com.mysql.jdbc.Driver     数据库驱动
+        treasure#initialSize=10     初始化连接数
+        treasure#minIdle=10     最小空闲连接数
+        treasure#maxIdle=20     最大空闲连接数
+        treasure#maxTotal=50    最大激活连接数
+        treasure#maxWaitMillis=60000    最长等待连接时间
+
+DBdafy.properties:包扫描   注意包路径不要与jar包相同,不再支持多相同path jar加载
+        scanner=com.dafy.cdo  包扫描位置,暂不支持动态扫描
+
+启动任务:（循环任务不在支持,改用TASK）
+    在类上使用Task注解并继承ContainerRunner
+    RunnerOnce注解需要使用在run函数上,可以指定延时时间单位毫秒级(非必要参数)
+    Grade可以指定优先等级（非必要参数）
